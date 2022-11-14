@@ -85,7 +85,6 @@ router.get('/api/foods',cors(), (req, res) => {
 })
 
 
-
 router.get('/api/activities',cors(), (req, res) => {
   const emaiLString="mylesMotha";
   findUser(emaiLString).then((user) => {
@@ -106,17 +105,17 @@ router.get('/api/days',cors(), (req, res) => {
 ////////////////////////////////// GET ROUTE HANDLERS ///////////////////////////////////////
 
 
-//checks the activities array to find one with matching id, request was made as a string so parseInt
-router.get('/api/activities/:id',cors(), (req, res) =>{
-  const activity=activities.find(c=> c.id === parseInt(req.params.id));
-  //if(!course) res.status(404).send('404!!! course with given id was not found'); //404 means object not found
-  res.send(activity);
-})
-
-router.get('/api/foods/:name', cors(), (req, res) => {
-  const food=foods.find(req.params.name);
-  res.send(food);
-})
+// //checks the activities array to find one with matching id, request was made as a string so parseInt
+// router.get('/api/activities/:id',cors(), (req, res) =>{
+//   const activity=activities.find(c=> c.id === parseInt(req.params.id));
+//   //if(!course) res.status(404).send('404!!! course with given id was not found'); //404 means object not found
+//   res.send(activity);
+// })
+//
+// router.get('/api/foods/:name', cors(), (req, res) => {
+//   const food=foods.find(req.params.name);
+//   res.send(food);
+// })
 
 
 
@@ -124,20 +123,59 @@ router.get('/api/foods/:name', cors(), (req, res) => {
 
 ////////////////////////////////// POST ROUTE HANDLERS ///////////////////////////////////////
 
+async function updateFood(userEmail, foodToFindName, newFoodObject){
 
+
+  const userFound=await findUser(userEmail);
+  if(userFound!==-1){
+    for(let i=0; i<userFound.foods.length; i++){
+      console.log(userFound.foods[i]);
+      if(userFound.foods[i].name===foodToFindName){
+        console.log("FOOD MATCHES!!")
+        //userFound.foods[i].name=newFoodObject.name;
+        //userFound.foods[i].calories=newFoodObject.calories;
+        userFound.foods[i]=newFoodObject;
+        await userFound.save();
+        console.log("update gucci");
+        return true;
+      }
+    }
+
+  }else{
+    console.log("update NOT gucci");
+    return false;
+  }
+}
+
+
+//todo: should add a food
 router.post('/api/foods', (req, res)=> {
-  // const {error} = validateCourse(req.body);
-  // if(error) {
-  //   res.status(400).send('post oopsie');
-  // }
-  const food = {
-   id: foods.length+1,
-   name: req.body.name,
-    caloriesOut: req.body.calories
+  /// JUNK TEST DATA /////
+  const emaiLString="mylesMotha";
+  const foodToFind="foodYouChanged"
+  const newFoodInfo = {
+   name: "foodYouChanged",
+    calories: 12
   };
-  foods.push(food);
-  res.send(food);
+  /////////////////////////
+  if(updateFood(emaiLString, foodToFind, newFoodInfo)){
+    const ansString ="successfully posted: "
+    console.log(ansString+newFoodInfo);
+    res.send(true);
+  }else {
+    console.log("failed to post food update")
+    res.send(false);
+  }
+
 });
+
+
+
+
+
+
+
+
 
 router.post('/api/activities', (req, res)=> {
   // const {error} = validateCourse(req.body);
