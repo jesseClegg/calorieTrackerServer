@@ -26,6 +26,7 @@ const days = [
   {date: 3, intake: 1900, burned: 700},
 ];
 
+////////////////////////////////// MONGO DB OVERHEAD /////////////////////////////////////////////////
 const mongoose = require('mongoose')
 const User = require("./userSchemaMongo") //import that model created in userSchemaMongo.js
 
@@ -37,8 +38,12 @@ mongoose.connect("mongodb+srv://jesseC:mongo4999@cluster0.kva1ucs.mongodb.net/?r
     e=> console.error(e)
 )
 
-//getFoodsByEmail("mylesMotha");
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////// MONGO FUNCTIONS /////////////////////////////////////////////////
 async function getFoodsByEmail(userEmail){
   //get the user object
   const userFound=await findUser(userEmail);
@@ -64,7 +69,7 @@ async function findUser(emailTofind) {
     return userFound;
   }
 }
-
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////// GET ROUTE HANDLERS ///////////////////////////////////////
 
@@ -72,21 +77,29 @@ async function findUser(emailTofind) {
 router.get('/api/foods',cors(), (req, res) => {
 
   //TODO: RIGHT HERE
-  findUser("mylesMotha").then((user) => {
+  const emaiLString="mylesMotha";
+  findUser(emaiLString).then((user) => {
     console.log(user);
     res.send(user.foods);
   });
-
-
 })
+
 
 
 router.get('/api/activities',cors(), (req, res) => {
-  res.send(activities);
+  const emaiLString="mylesMotha";
+  findUser(emaiLString).then((user) => {
+    console.log(user);
+    res.send(user.activities);
+  });
 })
 
 router.get('/api/days',cors(), (req, res) => {
-  res.send(days);
+  const emaiLString="mylesMotha";
+  findUser(emaiLString).then((user) => {
+    console.log(user);
+    res.send(user.days);
+  });
 })
 
 
