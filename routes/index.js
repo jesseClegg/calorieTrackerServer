@@ -26,11 +26,58 @@ const days = [
   {date: 3, intake: 1900, burned: 700},
 ];
 
+const mongoose = require('mongoose')
+const User = require("./userSchemaMongo") //import that model created in userSchemaMongo.js
+
+
+mongoose.connect("mongodb+srv://jesseC:mongo4999@cluster0.kva1ucs.mongodb.net/?retryWrites=true&w=majority",
+    ()=> {
+      console.log("connected succesz")
+    },
+    e=> console.error(e)
+)
+
+//getFoodsByEmail("mylesMotha");
+
+async function getFoodsByEmail(userEmail){
+  //get the user object
+  const userFound=await findUser(userEmail);
+  if(userFound!==-1){
+    console.log("food gucci");
+    // for(let i=0; i<userFound.foods.length; i++){
+    //     console.log(userFound.foods[i]);
+    // }
+    return userFound.foods;
+
+  }else{
+    console.log("food NOT gucci");
+  }
+}
+
+async function findUser(emailTofind) {
+  const userFound = await User.findOne({email: emailTofind});
+  if(!userFound){
+    console.log("doesnt exist");
+    return -1;
+  }else{
+     //console.log(userFound);
+    return userFound;
+  }
+}
+
+
 ////////////////////////////////// GET ROUTE HANDLERS ///////////////////////////////////////
 
 
 router.get('/api/foods',cors(), (req, res) => {
-  res.send(foods);
+
+  //TODO: RIGHT HERE
+  findUser("mylesMotha").then((user) => {
+    console.log(user);
+    res.send(user.foods);
+  });
+
+
 })
 
 
