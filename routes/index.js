@@ -75,8 +75,6 @@ async function findUser(emailTofind) {
 
 
 router.get('/api/foods',cors(), (req, res) => {
-
-  //TODO: RIGHT HERE
   const emaiLString="mylesMotha";
   findUser(emaiLString).then((user) => {
     console.log(user);
@@ -123,39 +121,34 @@ router.get('/api/days',cors(), (req, res) => {
 
 ////////////////////////////////// POST ROUTE HANDLERS ///////////////////////////////////////
 
+
 async function updateFood(userEmail, foodToFindName, newFoodObject){
-
-
   const userFound=await findUser(userEmail);
   if(userFound!==-1){
     for(let i=0; i<userFound.foods.length; i++){
       console.log(userFound.foods[i]);
       if(userFound.foods[i].name===foodToFindName){
         console.log("FOOD MATCHES!!")
-        //userFound.foods[i].name=newFoodObject.name;
-        //userFound.foods[i].calories=newFoodObject.calories;
         userFound.foods[i]=newFoodObject;
         await userFound.save();
-        console.log("update gucci");
+        console.log("update food gucci");
         return true;
       }
     }
-
   }else{
-    console.log("update NOT gucci");
+    console.log("update food NOT gucci");
     return false;
   }
 }
 
-
-//todo: should add a food
-router.post('/api/foods', (req, res)=> {
+//updates an existing food
+router.put('/api/foods', (req, res)=> {
   /// JUNK TEST DATA /////
-  const emaiLString="mylesMotha";
-  const foodToFind="foodYouChanged"
+  const emaiLString="bob";
+  const foodToFind="willysNewFood"
   const newFoodInfo = {
    name: "foodYouChanged",
-    calories: 12
+    calories: 8989898
   };
   /////////////////////////
   if(updateFood(emaiLString, foodToFind, newFoodInfo)){
@@ -166,11 +159,53 @@ router.post('/api/foods', (req, res)=> {
     console.log("failed to post food update")
     res.send(false);
   }
-
 });
 
 
 
+//insert a new food
+router.post('/api/foods', (req, res)=> {
+  /// JUNK TEST DATA /////
+  const emaiLString="bob";
+  const newFoodToInsert = {
+    name: "willysNewFood",
+    calories: 499
+  };
+  /////////////////////////
+  if(insertFood(emaiLString, newFoodToInsert)){
+    const ansString ="successfully posted: "
+    console.log(ansString+newFoodToInsert);
+    res.send(true);
+  }else {
+    console.log("failed to post food update")
+    res.send(false);
+  }
+});
+
+async function insertFood(userEmail, newFoodObject){
+  const userFound=await findUser(userEmail);
+  if(userFound!==-1){
+    for(let i=0; i<userFound.foods.length; i++){
+      console.log(userFound.foods[i]);
+      if(userFound.foods[i].name!==null&&userFound.foods[i].name===newFoodObject.name){
+        console.log("FOOD ALREADY EXISTS")
+        userFound.foods[i].name=newFoodObject.name;
+        userFound.foods[i].calories=newFoodObject.calories;
+        await userFound.save();
+        console.log("updated and existing food gucci");
+        return true;
+      }
+    }
+    console.log("updating a food that doesnt exist ");
+    userFound.foods.push(newFoodObject);
+    //userFound.foods[userFound.foods.length+1]=newFoodObject;
+    await userFound.save();
+    return true;
+  }else{
+    console.log("error getting the user when inserting a new food");
+    return false;
+  }
+}
 
 
 
@@ -178,10 +213,6 @@ router.post('/api/foods', (req, res)=> {
 
 
 router.post('/api/activities', (req, res)=> {
-  // const {error} = validateCourse(req.body);
-  // if(error) {
-  //   res.status(400).send('post oopsie');
-  // }
   const activity = {
     id: activities.length+1,
     name: req.body.name,
@@ -193,10 +224,6 @@ router.post('/api/activities', (req, res)=> {
 });
 
 router.post('/api/days', (req, res)=> {
-  // const {error} = validateCourse(req.body);
-  // if(error) {
-  //   res.status(400).send('post oopsie');
-  // }
   const day = {
     date: days.length+1,
     intake: req.body.intake,
@@ -220,28 +247,28 @@ router.post('/api/days', (req, res)=> {
 
 ////////////////////////////////// PUT ROUTE HANDLERS ///////////////////////////////////////
 
-router.put('/api/activities/:id', (req, res) =>{
-  //console.log(req.params.id);
-  const course=activities.find(c=> c.id === parseInt(req.params.id));
-  if(!course) res.status(404).send('404!!!  id was not found'); //404 means object not found
-
-  //validate the course,
-  //if invalid, return 400 = Bad request
-
- // const result = validateCourse(req.body);
-
-  //"object destructuring"
-  //const {error} = validateCourse(req.body);
-  // if(error) {
-  //   res.status(400).send(`put oopsie ${req.params.id}`);
-  // }
-
-  //update course
-  course.name = req.body.name;
-
-  //return updated course to the client
-  res.send(course.name);
-});
+// router.put('/api/activities/:id', (req, res) =>{
+//   //console.log(req.params.id);
+//   const course=activities.find(c=> c.id === parseInt(req.params.id));
+//   if(!course) res.status(404).send('404!!!  id was not found'); //404 means object not found
+//
+//   //validate the course,
+//   //if invalid, return 400 = Bad request
+//
+//  // const result = validateCourse(req.body);
+//
+//   //"object destructuring"
+//   //const {error} = validateCourse(req.body);
+//   // if(error) {
+//   //   res.status(400).send(`put oopsie ${req.params.id}`);
+//   // }
+//
+//   //update course
+//   course.name = req.body.name;
+//
+//   //return updated course to the client
+//   res.send(course.name);
+// });
 
 
 
@@ -250,28 +277,28 @@ router.put('/api/activities/:id', (req, res) =>{
 
 /////////////////////////// DELETE ROUTE HANDLERS ////////////////////////////////////
 
-router.delete('/api/activities/:id', (req, res) => {
-  //look up course
-  const course=activities.find(c=> c.id === parseInt(req.params.id));
-  //if not there => return 404
-  if(!course) res.status(404).send('404!!!  id was not found'); //404 means object not found
-
-  //else delete it
-  const index = activities.indexOf(course);
-  activities.splice(index, 1);//seems like there's 10 other ways to delete this object, here's one way
-
-  //return the course that was deleted to client
-  res.send(course);
-});
-
-
-
-function validateCourse(course){
-  const schema ={
-    name: Joi.string().min(3).required()
-  };
-  return result= Joi.valid(course, schema);
-}
+// router.delete('/api/activities/:id', (req, res) => {
+//   //look up course
+//   const course=activities.find(c=> c.id === parseInt(req.params.id));
+//   //if not there => return 404
+//   if(!course) res.status(404).send('404!!!  id was not found'); //404 means object not found
+//
+//   //else delete it
+//   const index = activities.indexOf(course);
+//   activities.splice(index, 1);//seems like there's 10 other ways to delete this object, here's one way
+//
+//   //return the course that was deleted to client
+//   res.send(course);
+// });
+//
+//
+//
+// function validateCourse(course){
+//   const schema ={
+//     name: Joi.string().min(3).required()
+//   };
+//   return result= Joi.valid(course, schema);
+// }
 
 
 module.exports = router;
