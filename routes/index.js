@@ -234,9 +234,42 @@ router.post('/api/days', (req, res)=> {
 });
 
 ////////////////////////////////// POST ROUTE HANDLERS ///////////////////////////////////////
+router.post('/api/addUser', (req, res)=> {
+  //TODO: MUST CHECK IF USER ALREADY EXISTS BEFORE ADDING!!!!
+  const userEmailToAdd= "spongeRobert";
+  createNewUser(userEmailToAdd).then(r => {
+    res.send("successfully added user: "+userEmailToAdd);
+  });
 
+});
 
-
+async function createNewUser(emailToUse) {
+  let today = new Date().toISOString().slice(0, 10)
+  //console.log(today)
+  const user = await User.create(
+      {
+        email: emailToUse,
+        activities:[
+          {name: 'running', calories: 100},
+          {name: 'napping', calories: 19},
+          {name: 'swimming', calories: 300}
+        ],
+        days:[
+          {Day: today, caloriesIn: 9001, caloriesOut: 1},
+          {Day: today, caloriesIn: 9002, caloriesOut: 2}
+        ],
+        foods:[
+          {name: 'apples', calories: 70},
+          {name: 'pineapples', calories: 65},
+          {name: 'pie', calories: 400},
+        ]
+      }
+  )
+  //const user = new User({name: "jesse", age: 99}) //both do the same things
+  //user.name="worker number 7"
+  //await user.save()
+  //console.log(user)
+}
 
 // app.post('/api/food/makeFile', (req, res)=>{
 //   fs.appendFile('oopsies.txt', 'Hello pizz!', function (err) {
@@ -276,6 +309,25 @@ router.post('/api/days', (req, res)=> {
 
 
 /////////////////////////// DELETE ROUTE HANDLERS ////////////////////////////////////
+
+router.delete('/api/deleteUser', (req, res) => {
+  const emaiLString="spongeRobert";
+  deleteByEmail(emaiLString).then(r => {
+    res.send("successfully deleted: "+emaiLString);
+  });
+});
+
+async function deleteByEmail(emailToDelete) {
+  await User.deleteOne({email: emailToDelete}, function (err, docs){
+    if (err){
+      console.log(err)
+    }
+    else{
+      console.log("Deleted User : ", docs);
+    }
+  }).clone();
+
+}
 
 // router.delete('/api/activities/:id', (req, res) => {
 //   //look up course
