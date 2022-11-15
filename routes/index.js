@@ -134,7 +134,7 @@ router.get('/api/getAllDays',cors(), async (req, res) => {
 
 
 //INSERT A NEW FOOD  /////////////////////////////////
-router.post('/api/updateFood', async (req, res) => {
+router.post('/api/insertNewFood', async (req, res) => {
   if (await insertFood(req.body.email, req.body.foodToAdd)) {
     res.send(true);
   } else {
@@ -167,6 +167,46 @@ async function insertFood(userEmail, newFoodObject){
   }
 }
 /////////////////////////////////
+
+
+
+//INSERT A NEW ACTIVITY  /////////////////////////////////
+router.post('/api/insertNewActivity', async (req, res) => {
+  if (await insertActivity(req.body.email, req.body.activityToAdd)) {
+    res.send(true);
+  } else {
+    res.send(false);
+  }
+});
+
+async function insertActivity(userEmail, newActivityObject){
+  const userFound=await getUserObjectByEmail(userEmail);
+  if(userFound!==false){
+    for(let i=0; i<userFound.activities.length; i++){
+      console.log(userFound.activities[i]);
+      if(userFound.activities[i].name!==null&&userFound.activities[i].name===newActivityObject.name){
+        console.log("ACTIVITY ALREADY EXISTS")
+        //todo: we could decide if we want to reject duplicates right here, now we just update them
+        userFound.activities[i].name=newActivityObject.name;
+        userFound.activities[i].calories=newActivityObject.calories;
+        await userFound.save();
+        console.log("updated and existing activity gucci");
+        return true;
+      }
+    }
+    console.log("updating an activity that doesnt exist ");
+    userFound.activities.push(newActivityObject);
+    //userFound.foods[userFound.foods.length+1]=newFoodObject;
+    await userFound.save();
+    return true;
+  }else{
+    console.log("error getting the user when inserting a new activity");
+    return false;
+  }
+}
+/////////////////////////////////
+
+
 
 
 // ADD A NEW USER /////////////////////////////////
@@ -238,7 +278,7 @@ router.post('/api/getAllDays', (req, res)=> {
 ////////////////////////////////// PUT ROUTE HANDLERS ///////////////////////////////////////
 
 //UPDATE AN EXISTING FOOD  /////////////////////////////////
-router.put('/api/updateFood', async (req, res) => {
+router.put('/api/insertNewFood', async (req, res) => {
  //todo: may want to not all duplicate foods?
   if (await updateFood(req.body.email, req.body.foodToUpdate, req.body.newFoodInfo)) {
     res.send(true);
@@ -269,15 +309,6 @@ async function updateFood(userEmail, foodToUpdate, newFoodObject){
 /////////////////////////////////
 
 
-// router.put('/api/activities/:id', (req, res) =>{
-//   //console.log(req.params.id);
-//   const course=activities.find(c=> c.id === parseInt(req.params.id));
-//
-//   course.name = req.body.name;
-//
-//
-//   res.send(course.name);
-// });
 
 
 
