@@ -88,7 +88,20 @@ async function checkIfActivityExists(email, activityToFind){
   //todo
 }
 async function checkIfDateExists(email, dateToFind){
-  //todo
+  const userFound=await getUserObjectByEmail(email);
+  if(userFound!==false){
+    console.log('date to find: '+dateToFind);
+    console.log();
+    for(let i=0; i<userFound.days.length; i++){
+      console.log(userFound.days[i].Day);
+      if(userFound.days[i].Day.toString()===dateToFind.toString()){ //todo: need some way to compare dates
+        console.log("its a match for date!")
+      }
+    }
+
+
+
+  }
 }
 //////////////////////////////////////////////////////////////////////////////////END MONGO HELPER FUNCTIONS
 
@@ -125,6 +138,15 @@ router.get('/api/getAllDays',cors(), async (req, res) => {
   }
 })
 
+router.get('/api/getOneDay',cors(), async (req, res) => {
+  if (await checkIfUserExists(req.body.email)) {
+    const user = await getUserObjectByEmail(req.body.email);
+    await checkIfDateExists(req.body.email, req.body.day);
+    res.send(true);
+  } else {
+    res.send(false);
+  }
+})
 /////////////////////////////////////////////////////////////////////////END GET ROUTE HANDLERS
 
 
@@ -132,6 +154,21 @@ router.get('/api/getAllDays',cors(), async (req, res) => {
 
 ////////////////////////////////// POST ROUTE HANDLERS ///////////////////////////////////////
 
+//INSERT A NEW DATE  ////////////////////////////////
+router.post('/api/insertNewDay', async (req, res) => {
+  if (await insertFood(req.body.email, req.body.Days)) {
+    console.log(req.body.Days);
+    res.send(true);
+  } else {
+    res.send(false);
+  }
+});
+
+
+
+
+
+//////////////////////////////////////////////////
 
 //INSERT A NEW FOOD  /////////////////////////////////
 router.post('/api/insertNewFood', async (req, res) => {
@@ -249,27 +286,6 @@ async function createNewUser(emailToUse) {
 /////////////////////////////////
 
 
-router.post('/api/getAllActivities', (req, res)=> {
-  const activity = {
-    id: activities.length+1,
-    name: req.body.name,
-    minuteDuration: req.body.minuteDuration,
-    caloriesPerMinute: req.body.caloriesPerMinute
-  };
-  activities.push(activity);
-  res.send(activity);
-});
-
-router.post('/api/getAllDays', (req, res)=> {
-  const day = {
-    date: days.length+1,
-    intake: req.body.intake,
-    burned: req.body.burned
-  };
-  days.push(day);
-  res.send(day);
-});
-
 /////////////////////////////////////////////////////////////////////////END POST ROUTE HANDLERS
 
 
@@ -278,7 +294,7 @@ router.post('/api/getAllDays', (req, res)=> {
 ////////////////////////////////// PUT ROUTE HANDLERS ///////////////////////////////////////
 
 //UPDATE AN EXISTING FOOD  /////////////////////////////////
-router.put('/api/insertNewFood', async (req, res) => {
+router.put('/api/updateExistingFood', async (req, res) => {
  //todo: may want to not all duplicate foods?
   if (await updateFood(req.body.email, req.body.foodToUpdate, req.body.newFoodInfo)) {
     res.send(true);
@@ -298,6 +314,7 @@ async function updateFood(userEmail, foodToUpdate, newFoodObject){
         userFound.foods[i]=newFoodObject;
         await userFound.save();
         console.log("update food gucci");
+
         return true;
       }
     }
