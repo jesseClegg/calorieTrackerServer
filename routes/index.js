@@ -64,14 +64,26 @@ async function checkIfUserExists(email){
     return false;
   }
 }
-async function checkIfFoodExists(email, foodToFind){
-    const userFound = getUserObjectByEmail(email);
+async function checkIfFoodExists(email, foodNameToFind){
+    const userFound=await getUserObjectByEmail(email);
     if(userFound!==false){
-      //todo: search for food
+      for(let i=0; i<userFound.foods.length; i++){
+        //console.log(userFound.foods[i]);
+        if(userFound.foods[i].name!==null&&userFound.foods[i].name===foodNameToFind){
+          //console.log("food and user exist");
+          return true;
+        }
+      }
+      //console.log("user exists, food didnt");
+      return false;
     }else{
+      //console.log(foodNameToFind.name+" user doesnt exist");
       return false;
     }
 }
+
+
+
 async function checkIfActivityExists(email, activityToFind){
   //todo
 }
@@ -85,29 +97,32 @@ async function checkIfDateExists(email, dateToFind){
 ////////////////////////////////// GET ROUTE HANDLERS ///////////////////////////////////////
 
 
-router.get('/api/foods',cors(), (req, res) => {
-  const emaiLString="mylesMotha";
-  getUserObjectByEmail(emaiLString).then((user) => {
-    //console.log(user);
-    res.send(user.foods);
-  });
+router.get('/api/getAllFoods',cors(), async (req, res) => {
+  if (await checkIfUserExists(req.body.email)) {
+      const user = await getUserObjectByEmail(req.body.email);
+      res.send(user.foods);
+  }else{
+    res.send(false);
+  }
+
 })
 
-
-router.get('/api/activities',cors(), (req, res) => {
-  const emaiLString="mylesMotha";
-  getUserObjectByEmail(emaiLString).then((user) => {
-    //console.log(user);
+router.get('/api/getAllActivities',cors(), async (req, res) => {
+  if (await checkIfUserExists(req.body.email)) {
+    const user = await getUserObjectByEmail(req.body.email);
     res.send(user.activities);
-  });
+  } else {
+    res.send(false);
+  }
 })
 
-router.get('/api/days',cors(), (req, res) => {
-  const emaiLString="mylesMotha";
-  getUserObjectByEmail(emaiLString).then((user) => {
-    //console.log(user);
+router.get('/api/getAllDays',cors(), async (req, res) => {
+  if (await checkIfUserExists(req.body.email)) {
+    const user = await getUserObjectByEmail(req.body.email);
     res.send(user.days);
-  });
+  } else {
+    res.send(false);
+  }
 })
 
 /////////////////////////////////////////////////////////////////////////END GET ROUTE HANDLERS
@@ -119,27 +134,17 @@ router.get('/api/days',cors(), (req, res) => {
 
 
 //INSERT A NEW FOOD  /////////////////////////////////
-router.post('/api/foods', (req, res)=> {
-
-  const emaiLString="bob"; /// JUNK TEST DATA
-  const newFoodToInsert = {
-    name: "willysNewFood",
-    calories: 499
-  };
-
-  if(insertFood(emaiLString, newFoodToInsert)){
-    const ansString ="successfully posted: "
-    console.log(ansString+newFoodToInsert);
+router.post('/api/updateFood', async (req, res) => {
+  if (await insertFood(req.body.email, req.body.foodToAdd)) {
     res.send(true);
-  }else {
-    console.log("failed to post food update")
+  } else {
     res.send(false);
   }
 });
 
 async function insertFood(userEmail, newFoodObject){
   const userFound=await getUserObjectByEmail(userEmail);
-  if(userFound!==-1){
+  if(userFound!==false){
     for(let i=0; i<userFound.foods.length; i++){
       console.log(userFound.foods[i]);
       if(userFound.foods[i].name!==null&&userFound.foods[i].name===newFoodObject.name){
@@ -151,7 +156,7 @@ async function insertFood(userEmail, newFoodObject){
         return true;
       }
     }
-    console.log("updating a food that doesnt exist ");
+    //console.log("updating a food that doesnt exist ");
     userFound.foods.push(newFoodObject);
     //userFound.foods[userFound.foods.length+1]=newFoodObject;
     await userFound.save();
@@ -204,7 +209,7 @@ async function createNewUser(emailToUse) {
 /////////////////////////////////
 
 
-router.post('/api/activities', (req, res)=> {
+router.post('/api/getAllActivities', (req, res)=> {
   const activity = {
     id: activities.length+1,
     name: req.body.name,
@@ -215,7 +220,7 @@ router.post('/api/activities', (req, res)=> {
   res.send(activity);
 });
 
-router.post('/api/days', (req, res)=> {
+router.post('/api/getAllDays', (req, res)=> {
   const day = {
     date: days.length+1,
     intake: req.body.intake,
@@ -233,31 +238,22 @@ router.post('/api/days', (req, res)=> {
 ////////////////////////////////// PUT ROUTE HANDLERS ///////////////////////////////////////
 
 //UPDATE AN EXISTING FOOD  /////////////////////////////////
-router.put('/api/foods', (req, res)=> {
-  /// JUNK TEST DATA /////
-  const emaiLString="bob";
-  const foodToFind="willysNewFood"
-  const newFoodInfo = {
-    name: "foodYouChanged",
-    calories: 8989898
-  };
-  /////////////////////////
-  if(updateFood(emaiLString, foodToFind, newFoodInfo)){
-    const ansString ="successfully posted: "
-    console.log(ansString+newFoodInfo);
+router.put('/api/updateFood', async (req, res) => {
+ //todo: may want to not all duplicate foods?
+  if (await updateFood(req.body.email, req.body.foodToUpdate, req.body.newFoodInfo)) {
     res.send(true);
-  }else {
+  } else {
     console.log("failed to post food update")
     res.send(false);
   }
 });
 
-async function updateFood(userEmail, foodToFindName, newFoodObject){
-  const userFound=await getUserObjectByEmail(userEmail);
-  if(userFound!==-1){
+async function updateFood(userEmail, foodToUpdate, newFoodObject){
+  if(await checkIfUserExists(userEmail)){
+    const userFound=await getUserObjectByEmail(userEmail);
     for(let i=0; i<userFound.foods.length; i++){
       console.log(userFound.foods[i]);
-      if(userFound.foods[i].name===foodToFindName){
+      if(userFound.foods[i].name===foodToUpdate){
         console.log("FOOD MATCHES!!")
         userFound.foods[i]=newFoodObject;
         await userFound.save();
@@ -300,8 +296,6 @@ router.delete('/api/deleteUser', async (req, res) => {
   } else {
     res.send("failed to delete: " + emailToDelete+" does not exist");
   }
-
-
 });
 
 async function deleteByEmail(emailToDelete) {
