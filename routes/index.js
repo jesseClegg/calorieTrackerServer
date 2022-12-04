@@ -8,50 +8,34 @@ const User = require("./userSchemaMongo") //import that model created in userSch
 
 mongoose.connect("mongodb+srv://jesseC:mongo4999@cluster0.kva1ucs.mongodb.net/?retryWrites=true&w=majority",
     ()=> {
-      console.log("connected succesz")
+      console.log("connected successfully")
     },
     e=> console.error(e)
 )
 ////////////////////////////////////////////////////////////////////////////////////END MONGO DB OVERHEAD
 
-const activities = [
-  {id: 1, name: 'running', minuteDuration:15, caloriesPerMinute:11},
-  {id: 2, name: 'swimming', minuteDuration:30, caloriesPerMinute:15},
-  {id: 3, name: 'walking', minuteDuration:120, caloriesPerMinute:7},
-  {id: 4, name: 'basketball', minuteDuration:45, caloriesPerMinute:14},
-];
-
-const days = [
-  {date: 1, intake: 1500, burned: 500},
-  {date: 2, intake: 1300, burned: 600},
-  {date: 3, intake: 1900, burned: 700},
-];
-
-
 
 ////////////////////////////////// MONGO HELPER FUNCTIONS /////////////////////////////////////////////////
-async function getFoodsByEmail(userEmail){
-  //get the user object
-  const userFound=await getUserObjectByEmail(userEmail);
-  if(userFound!==false){
-    console.log("food gucci");
-    // for(let i=0; i<userFound.foods.length; i++){
-    //     console.log(userFound.foods[i]);
-    // }
-    return userFound.foods;
-
-  }else{
-    console.log("food NOT gucci");
-  }
-}
+// async function getFoodsByEmail(userEmail){
+//   //get the user object
+//   const userFound=await getUserObjectByEmail(userEmail);
+//   if(userFound!==false){
+//     console.log("food good");
+//     // for(let i=0; i<userFound.foods.length; i++){
+//     //     console.log(userFound.foods[i]);
+//     // }
+//     return userFound.foods;
+//
+//   }else{
+//     console.log("food NOT good");
+//   }
+// }
 
 async function getUserObjectByEmail(email) {
   const userFound = await User.findOne({email: email});
   if(!userFound){
-    //console.log("doesnt exist");
     return false;
   }else{
-     //console.log(userFound);
     return userFound;
   }
 }
@@ -68,46 +52,32 @@ async function checkIfFoodExists(email, foodNameToFind){
     const userFound=await getUserObjectByEmail(email);
     if(userFound!==false){
       for(let i=0; i<userFound.foods.length; i++){
-        //console.log(userFound.foods[i]);
         if(userFound.foods[i].name!==null&&userFound.foods[i].name===foodNameToFind){
-          //console.log("food and user exist");
           return true;
         }
       }
-      //console.log("user exists, food didnt");
       return false;
     }else{
-      //console.log(foodNameToFind.name+" user doesnt exist");
       return false;
     }
 }
 
-
-
-async function checkIfActivityExists(email, activityToFind){
-  //todo
-}
 async function checkIfDateExists(email, dateToFind){
   const userFound=await getUserObjectByEmail(email);
   if(userFound!==false){
-    console.log('date to find: '+dateToFind);
-    console.log();
     for(let i=0; i<userFound.days.length; i++){
-      console.log(userFound.days[i].Day);
-      if(userFound.days[i].Day.toString()===dateToFind.toString()){ //todo: need some way to compare dates
-        console.log("its a match for date!")
+      if(userFound.days[i].Day.toString()===dateToFind.toString()){
+        return true;
       }
     }
-
-
-
   }
+  return false;
 }
 //////////////////////////////////////////////////////////////////////////////////END MONGO HELPER FUNCTIONS
 
 
 
-////////////////////////////////// GET ROUTE HANDLERS ///////////////////////////////////////
+////////////////////////////////// POST ROUTE HANDLERS ///////////////////////////////////////
 
 
 router.post('/api/getAllFoods',cors(), async (req, res) => {
@@ -121,7 +91,6 @@ router.post('/api/getAllFoods',cors(), async (req, res) => {
 })
 
 router.post('/api/getAllActivities',cors(), async (req, res) => {
-  //console.log("heres your email: ["+req.body.email+"]"); //todo: working HERE
   if (await checkIfUserExists(req.body.email)) {
     const user = await getUserObjectByEmail(req.body.email);
     res.send(user.activities);
@@ -148,14 +117,12 @@ router.get('/api/getOneDay',cors(), async (req, res) => {
     res.send(false);
   }
 })
-/////////////////////////////////////////////////////////////////////////END GET ROUTE HANDLERS
 
 
 
 
-////////////////////////////////// POST ROUTE HANDLERS ///////////////////////////////////////
 
-//INSERT A NEW DATE  ////////////////////////////////
+//INSERT A NEW DATE OR UPDATE IF EXISTING ////////////////////////////////
 router.post('/api/insertNewDay', async (req, res) => {
   if (await insertDay(req.body.email, req.body.days)) {
     res.send(true);
@@ -166,45 +133,24 @@ router.post('/api/insertNewDay', async (req, res) => {
 
 async function insertDay(userEmail, newDayObject){
   const userFound=await getUserObjectByEmail(userEmail);
-  console.log("trying to insert: ");
   const newDate=Date.parse(newDayObject.Day);
-  console.log(newDate);
-  //console.log(Date.parse(newDayObject.Day));
-
   if(userFound!==false){
     for(let i=0; i<userFound.days.length; i++){
       const userDate=Date.parse(userFound.days[i].Day);
-      console.log("loop top--------------------");
-      console.log(userDate);
-      console.log(userDate);
       if(userDate!==null&&userDate===newDate){
-        console.log("Date ALREADY EXISTS");
-        console.log("existing="+userDate); //todo: need to stringify to be sure
-        console.log("new = "+newDate);
         userFound.days[i].caloriesIn+=newDayObject.caloriesIn;
         userFound.days[i].caloriesOut+=newDayObject.caloriesOut;
         await userFound.save();
-        console.log("updated and existing date gucci");
         return true;
       }
-      console.log("loop bottom-------------------");
-      console.log();
-      console.log();
     }
-    console.log("updating a day that doesnt exist ");
-    //userFound.days.push(newDayObject); //todo: actually do simply want to push
-    //userFound.foods[userFound.foods.length+1]=newFoodObject;
-    //userFound.days[userFound.days.length-1]=newDayObject;
-    //await userFound.save(); //todo this is good1
+    userFound.days.push(newDayObject);
+    await userFound.save();
     return true;
   }else{
-    console.log("error getting the user when inserting a new food");
     return false;
   }
 }
-
-
-
 //////////////////////////////////////////////////
 
 //INSERT A NEW FOOD  /////////////////////////////////
@@ -220,23 +166,17 @@ async function insertFood(userEmail, newFoodObject){
   const userFound=await getUserObjectByEmail(userEmail);
   if(userFound!==false){
     for(let i=0; i<userFound.foods.length; i++){
-      console.log(userFound.foods[i]);
       if(userFound.foods[i].name!==null&&userFound.foods[i].name===newFoodObject.name){
-        console.log("FOOD ALREADY EXISTS")
         userFound.foods[i].name=newFoodObject.name;
         userFound.foods[i].calories=newFoodObject.calories;
         await userFound.save();
-        console.log("updated and existing food gucci");
         return true;
       }
     }
-    //console.log("updating a food that doesnt exist ");
     userFound.foods.push(newFoodObject);
-    //userFound.foods[userFound.foods.length+1]=newFoodObject;
     await userFound.save();
     return true;
   }else{
-    console.log("error getting the user when inserting a new food");
     return false;
   }
 }
@@ -257,24 +197,17 @@ async function insertActivity(userEmail, newActivityObject){
   const userFound=await getUserObjectByEmail(userEmail);
   if(userFound!==false){
     for(let i=0; i<userFound.activities.length; i++){
-      console.log(userFound.activities[i]);
       if(userFound.activities[i].name!==null&&userFound.activities[i].name===newActivityObject.name){
-        console.log("ACTIVITY ALREADY EXISTS")
-        //todo: we could decide if we want to reject duplicates right here, now we just update them
         userFound.activities[i].name=newActivityObject.name;
         userFound.activities[i].calories=newActivityObject.calories;
         await userFound.save();
-        console.log("updated and existing activity gucci");
         return true;
       }
     }
-    console.log("updating an activity that doesnt exist ");
     userFound.activities.push(newActivityObject);
-    //userFound.foods[userFound.foods.length+1]=newFoodObject;
     await userFound.save();
     return true;
   }else{
-    console.log("error getting the user when inserting a new activity");
     return false;
   }
 }
@@ -298,6 +231,7 @@ router.post('/api/addUser', async (req, res) => {
 
 });
 
+//CURRENTLY AUTO POPULATES NEW USERS WITH DATA FOR DEMO PURPOSES
 async function createNewUser(emailToUse) {
   let today = new Date().toISOString().slice(0, 10)
   const user = await User.create(
@@ -323,20 +257,20 @@ async function createNewUser(emailToUse) {
 /////////////////////////////////
 
 
+
+
 /////////////////////////////////////////////////////////////////////////END POST ROUTE HANDLERS
 
 
 
-
+//puts are not necessary for our user stories, but the template has been left in
 ////////////////////////////////// PUT ROUTE HANDLERS ///////////////////////////////////////
 
 //UPDATE AN EXISTING FOOD  /////////////////////////////////
 router.put('/api/updateExistingFood', async (req, res) => {
- //todo: may want to not all duplicate foods?
   if (await updateFood(req.body.email, req.body.foodToUpdate, req.body.newFoodInfo)) {
     res.send(true);
   } else {
-    console.log("failed to post food update")
     res.send(false);
   }
 });
@@ -345,27 +279,17 @@ async function updateFood(userEmail, foodToUpdate, newFoodObject){
   if(await checkIfUserExists(userEmail)){
     const userFound=await getUserObjectByEmail(userEmail);
     for(let i=0; i<userFound.foods.length; i++){
-      console.log(userFound.foods[i]);
       if(userFound.foods[i].name===foodToUpdate){
-        console.log("FOOD MATCHES!!")
         userFound.foods[i]=newFoodObject;
         await userFound.save();
-        console.log("update food gucci");
-
         return true;
       }
     }
   }else{
-    console.log("update food NOT gucci");
     return false;
   }
 }
 /////////////////////////////////
-
-
-
-
-
 
 
 
@@ -386,16 +310,15 @@ router.delete('/api/deleteUser', async (req, res) => {
 async function deleteByEmail(emailToDelete) {
   await User.deleteOne({email: emailToDelete}, function (err, docs){
     if (err){
-      //console.log(err)
     }
     else{
-      //console.log("Deleted User : ", docs);
     }
   }).clone();
-
 }
 /////////////////////////////////////////////
 
+
+///////////////////////////DELETE A PARTICULAR DAY //////////////////////////////////////////////
 router.delete('/api/deleteDay', async (req, res) => {
   if (await deleteDay(req.body.email, req.body.days)) {
     res.send(true);
@@ -406,42 +329,21 @@ router.delete('/api/deleteDay', async (req, res) => {
 
 async function deleteDay(userEmail, newDayObject){
   const userFound=await getUserObjectByEmail(userEmail);
-  console.log("trying to delete: ");
   const newDate=Date.parse(newDayObject.Day);
-  console.log(newDate);
-  //console.log(Date.parse(newDayObject.Day));
-
   if(userFound!==false){
     for(let i=0; i<userFound.days.length; i++){
       const userDate=Date.parse(userFound.days[i].Day);
-      console.log("loop top--------------------");
-      console.log(userDate);
-      console.log(userDate);
       if(userDate!==null&&userDate===newDate){
-        console.log("DATE EXISTS");
-        console.log("existing="+userDate); //todo: need to stringify to be sure
         userFound.days.splice(i, 1);
         await userFound.save();
-        console.log("DELETE date gucci");
         return true;
       }
-      console.log("loop bottom-------------------");
-      console.log();
-      console.log();
     }
-    console.log("CANNOT DELETE a day that doesnt exist ");
-    //userFound.days.push(newDayObject); //todo: actually do simply want to push
-    //userFound.foods[userFound.foods.length+1]=newFoodObject;
-    //userFound.days[userFound.days.length-1]=newDayObject;
-    //await userFound.save(); //todo this is good1
     return false;
   }else{
-    console.log("error getting the user when inserting a new food");
     return false;
   }
 }
-
-
 
 /////////////////////////////////////////////////////////////////////////END DELETE ROUTE HANDLERS
 
