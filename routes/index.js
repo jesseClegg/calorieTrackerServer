@@ -180,9 +180,9 @@ async function insertDay(userEmail, newDayObject){
         console.log("Date ALREADY EXISTS");
         console.log("existing="+userDate); //todo: need to stringify to be sure
         console.log("new = "+newDate);
-        // userFound.foods[i].name=newFoodObject.name;
-        // userFound.foods[i].calories=newFoodObject.calories;
-        // await userFound.save();
+        userFound.days[i].caloriesIn+=newDayObject.caloriesIn;
+        userFound.days[i].caloriesOut+=newDayObject.caloriesOut;
+        await userFound.save();
         console.log("updated and existing date gucci");
         return true;
       }
@@ -393,6 +393,53 @@ async function deleteByEmail(emailToDelete) {
   }).clone();
 
 }
+/////////////////////////////////////////////
+
+router.delete('/api/deleteDay', async (req, res) => {
+  if (await deleteDay(req.body.email, req.body.days)) {
+    res.send(true);
+  } else {
+    res.send(false);
+  }
+});
+
+async function deleteDay(userEmail, newDayObject){
+  const userFound=await getUserObjectByEmail(userEmail);
+  console.log("trying to delete: ");
+  const newDate=Date.parse(newDayObject.Day);
+  console.log(newDate);
+  //console.log(Date.parse(newDayObject.Day));
+
+  if(userFound!==false){
+    for(let i=0; i<userFound.days.length; i++){
+      const userDate=Date.parse(userFound.days[i].Day);
+      console.log("loop top--------------------");
+      console.log(userDate);
+      console.log(userDate);
+      if(userDate!==null&&userDate===newDate){
+        console.log("DATE EXISTS");
+        console.log("existing="+userDate); //todo: need to stringify to be sure
+        userFound.days.splice(i, 1);
+        await userFound.save();
+        console.log("DELETE date gucci");
+        return true;
+      }
+      console.log("loop bottom-------------------");
+      console.log();
+      console.log();
+    }
+    console.log("CANNOT DELETE a day that doesnt exist ");
+    //userFound.days.push(newDayObject); //todo: actually do simply want to push
+    //userFound.foods[userFound.foods.length+1]=newFoodObject;
+    //userFound.days[userFound.days.length-1]=newDayObject;
+    //await userFound.save(); //todo this is good1
+    return false;
+  }else{
+    console.log("error getting the user when inserting a new food");
+    return false;
+  }
+}
+
 
 
 /////////////////////////////////////////////////////////////////////////END DELETE ROUTE HANDLERS
