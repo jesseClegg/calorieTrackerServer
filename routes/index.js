@@ -120,12 +120,13 @@ router.get('/api/getAllFoods',cors(), async (req, res) => {
 
 })
 
-router.get('/api/getAllActivities',cors(), async (req, res) => {
+router.post('/api/getAllActivities',cors(), async (req, res) => {
+  console.log("heres your email: ["+req.body.email+"]"); //todo: working HERE
   if (await checkIfUserExists(req.body.email)) {
     const user = await getUserObjectByEmail(req.body.email);
     res.send(user.activities);
   } else {
-    res.send(false);
+    res.send("error code something");
   }
 })
 
