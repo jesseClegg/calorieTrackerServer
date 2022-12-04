@@ -156,15 +156,51 @@ router.get('/api/getOneDay',cors(), async (req, res) => {
 
 //INSERT A NEW DATE  ////////////////////////////////
 router.post('/api/insertNewDay', async (req, res) => {
-  if (await insertFood(req.body.email, req.body.Days)) {
-    console.log(req.body.Days);
+  if (await insertDay(req.body.email, req.body.days)) {
     res.send(true);
   } else {
     res.send(false);
   }
 });
 
+async function insertDay(userEmail, newDayObject){
+  const userFound=await getUserObjectByEmail(userEmail);
+  console.log("trying to insert: ");
+  const newDate=Date.parse(newDayObject.Day);
+  console.log(newDate);
+  //console.log(Date.parse(newDayObject.Day));
 
+  if(userFound!==false){
+    for(let i=0; i<userFound.days.length; i++){
+      const userDate=Date.parse(userFound.days[i].Day);
+      console.log("loop top--------------------");
+      console.log(userDate);
+      console.log(userDate);
+      if(userDate!==null&&userDate===newDate){
+        console.log("Date ALREADY EXISTS");
+        console.log("existing="+userDate); //todo: need to stringify to be sure
+        console.log("new = "+newDate);
+        // userFound.foods[i].name=newFoodObject.name;
+        // userFound.foods[i].calories=newFoodObject.calories;
+        // await userFound.save();
+        console.log("updated and existing date gucci");
+        return true;
+      }
+      console.log("loop bottom-------------------");
+      console.log();
+      console.log();
+    }
+    console.log("updating a day that doesnt exist ");
+    //userFound.days.push(newDayObject); //todo: actually do simply want to push
+    //userFound.foods[userFound.foods.length+1]=newFoodObject;
+    //userFound.days[userFound.days.length-1]=newDayObject;
+    //await userFound.save(); //todo this is good1
+    return true;
+  }else{
+    console.log("error getting the user when inserting a new food");
+    return false;
+  }
+}
 
 
 
