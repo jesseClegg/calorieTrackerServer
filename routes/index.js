@@ -73,6 +73,18 @@ async function checkIfDateExists(email, dateToFind){
   }
   return false;
 }
+
+async function getOneDate(email, dateToFind){
+  const userFound=await getUserObjectByEmail(email);
+  if(userFound!==false){
+    for(let i=0; i<userFound.days.length; i++){
+      if(userFound.days[i].Day.toString()===dateToFind.toString()){
+        return userFound.days[i].Day.toString();
+      }
+    }
+  }
+  return false;
+}
 //////////////////////////////////////////////////////////////////////////////////END MONGO HELPER FUNCTIONS
 
 
@@ -108,11 +120,32 @@ router.get('/api/getAllDays',cors(), async (req, res) => {
   }
 })
 
-router.get('/api/getOneDay',cors(), async (req, res) => {
+router.post('/api/getOneDay',cors(), async (req, res) => {
+  console.log("looking for = "+req.body.day);
+  console.log("emial is :"+req.body.email)
+  const dateToFind = req.body.day
   if (await checkIfUserExists(req.body.email)) {
-    const user = await getUserObjectByEmail(req.body.email);
-    await checkIfDateExists(req.body.email, req.body.day);
-    res.send(true);
+    const userFound = await getUserObjectByEmail(req.body.email);
+
+//check if the date already exists
+    for(let i=0; i<userFound.days.length; i++){
+      const userDate=userFound.days[i].Day;
+      console.log("currently in loop: "+userDate);
+      if(userDate!==null&&userDate===dateToFind){
+        console.log("$$$$$its a match! we found= "+userDate)
+        //console.log("we found= "+userFound.days[i].Day.toString())
+        //return userFound.days[i].Day.toString();
+        res.send(userFound.days[i])
+        return
+      }
+    }
+
+    //if the date does not already exist, then we can add it, and return the newly created date entry
+    console.log("COULD NOT FIND THAT DATE")
+    res.send(false);
+
+      //res.send(getOneDate(req.body.email, req.body.day))
+
   } else {
     res.send(false);
   }
@@ -133,10 +166,10 @@ router.post('/api/insertNewDay', async (req, res) => {
 
 async function insertDay(userEmail, newDayObject){
   const userFound=await getUserObjectByEmail(userEmail);
-  const newDate=Date.parse(newDayObject.Day);
+  const newDate=newDayObject.Day;
   if(userFound!==false){
     for(let i=0; i<userFound.days.length; i++){
-      const userDate=Date.parse(userFound.days[i].Day);
+      const userDate=userFound.days[i].Day;
       if(userDate!==null&&userDate===newDate){
         userFound.days[i].caloriesIn+=newDayObject.caloriesIn;
         userFound.days[i].caloriesOut+=newDayObject.caloriesOut;
