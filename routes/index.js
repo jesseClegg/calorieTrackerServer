@@ -282,9 +282,9 @@ async function createNewUser(emailToUse) {
           {Day: today, caloriesIn: 9002, caloriesOut: 2}
         ],
         foods:[
-          {name: 'apples', calories: 70},
-          {name: 'pineapples', calories: 65},
-          {name: 'pie', calories: 400},
+          {name: 'pizza', calories: 400, imageUrl: "https://s3forninad.s3.amazonaws.com/food+photos/pizza.jpg"},
+          {name: 'salad', calories: 120, imageUrl: "https://s3forninad.s3.amazonaws.com/food+photos/salad.jpg"},
+          {name: 'icecream', calories: 500, imageUrl: "https://s3forninad.s3.amazonaws.com/food+photos/icecream.jpg"},
         ]
       }
   )
