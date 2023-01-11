@@ -121,6 +121,8 @@ router.get('/api/getAllDays',cors(), async (req, res) => {
 })
 
 router.post('/api/getOneDay',cors(), async (req, res) => {
+  console.log();
+  console.log();
   console.log("looking for = "+req.body.day);
   console.log("emial is :"+req.body.email)
   const dateToFind = req.body.day
