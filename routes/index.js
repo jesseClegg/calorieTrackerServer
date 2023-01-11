@@ -271,9 +271,9 @@ async function createNewUser(emailToUse) {
       {
         email: emailToUse,
         activities:[
-          {name: 'running', calories: 100},
-          {name: 'napping', calories: 19},
-          {name: 'swimming', calories: 300}
+          {name: 'running', calories: 100, imageUrl:"https://s3forninad.s3.amazonaws.com/excercise+photos/running.jpg"},
+          {name: 'yoga', calories: 70, imageUrl: "https://s3forninad.s3.amazonaws.com/excercise+photos/yoga.jpg"},
+          {name: 'swimming', calories: 300, imageUrl: "https://s3forninad.s3.amazonaws.com/excercise+photos/swimming.png"}
         ],
         days:[
           {Day: today, caloriesIn: 9001, caloriesOut: 1},

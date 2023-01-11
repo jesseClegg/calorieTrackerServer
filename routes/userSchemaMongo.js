@@ -1,9 +1,10 @@
 const mongoose = require('mongoose')
+const {string} = require("joi");
 
 const userSchema = new mongoose.Schema({
     email: String, //value is going to define the TYPE for this attribute in the schema
     foods: [{ name: String, calories: Number}],
-    activities: [{ name: String, calories: Number}],
+    activities: [{ name: String, calories: Number,  imageUrl: String}],
     days: [{ Day: String, caloriesIn: Number, caloriesOut: Number}],
 
     //bestFriend: mongoose.SchemaTypes.ObjectId
