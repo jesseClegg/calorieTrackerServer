@@ -4,7 +4,8 @@ const cors = require('cors');
 
 ////////////////////////////////// MONGO DB OVERHEAD /////////////////////////////////////////////////
 const mongoose = require('mongoose')
-const User = require("./userSchemaMongo") //import that model created in userSchemaMongo.js
+const User = require("./userSchemaMongo")
+const Console = require("console"); //import that model created in userSchemaMongo.js
 
 mongoose.connect("mongodb+srv://jesseC:mongo4999@cluster0.kva1ucs.mongodb.net/?retryWrites=true&w=majority",
     ()=> {
@@ -379,6 +380,36 @@ async function deleteDay(userEmail, newDayObject){
     return false;
   }
 }
+
+router.delete('/api/deleteFood', async (req, res) => {
+  console.log();
+  console.log();
+  console.log("attempting to delete:["+req.body.foodToDelete+"]");
+  if (await deleteFood(req.body.email, req.body.foodToDelete)) {
+    res.send(true);
+  } else {
+    res.send(false);
+  }
+});
+
+async function deleteFood(userEmail, foodToDelete){
+  if(await checkIfUserExists(userEmail)){
+    const userFound=await getUserObjectByEmail(userEmail);
+    for(let i=0; i<userFound.foods.length; i++){
+      console.log("currently reading==["+userFound.foods[i].name+"]");
+      if(userFound.foods[i].name===foodToDelete){
+        //Console.log("!!!FOOD EXISTS!!!")
+        //todo: may not even need the loop, just use index of
+        userFound.foods.splice(i,1);
+        await userFound.save();
+        return true;
+      }
+    }
+  }else{
+    return false;
+  }
+}
+
 
 /////////////////////////////////////////////////////////////////////////END DELETE ROUTE HANDLERS
 
